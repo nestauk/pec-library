@@ -16,8 +16,6 @@ If you update the requirements then run `make conda-update`.
 
 [Technical and working style guidelines](https://github.com/nestauk/ds-cookiecutter/blob/master/GUIDELINES.md)
 
-## Running locally
-
 ---
 
 <small><p>Project based on <a target="_blank" href="https://github.com/nestauk/ds-cookiecutter">Nesta's data science project template</a>
