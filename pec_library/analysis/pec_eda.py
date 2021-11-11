@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import statistics
 import re
 import itertools
+from pytrends.request import TrendReq
 
 from datetime import datetime
 from collections import Counter
@@ -136,3 +137,16 @@ def eda(records, top=10):
 eda(asf)
 eda(ahl)
 eda(afs)
+
+# ### 1.2 Query Expansion using Google Trends
+
+# +
+pytrend = TrendReq(geo="UK")
+keywords = ["climate change", "food environment", "early childhood"]
+
+result_titles = []
+for keyword in keywords:
+    for result in pytrend.suggestions(keyword):
+        result_titles.append(result["title"].lower())
+
+print(result_titles)
