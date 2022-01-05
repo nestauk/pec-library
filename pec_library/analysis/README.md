@@ -26,7 +26,7 @@ The first script aims to get a high level overview of the state of the data and 
 The results are as follows: 
 ### 'heat pumps'
 
-![asf_1](/eda_results/asf_1.png?raw=true)
+![asf_1](eda_results/asf_1.png?raw=true)
 ![asf_2](/eda_results/asf_2.png?raw=true)
 
 ### 'obesity'
