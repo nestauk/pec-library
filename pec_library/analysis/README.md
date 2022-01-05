@@ -13,6 +13,36 @@ Both scripts rely on the following keywords as the initial 'seed' keywords to qu
 
 The first script reports on general data quality across all three missions, while the second uses `asf_keyword` for network eda.
 
+
+When you query the API by keyword, the search will query the whole entry, not a specificed field. When you query the API by keyword, the data looks like:
+
+`{'bibliographic_data': {'author': ['Neal, L. G.'],
+  'physical_description': ['ix, 227 p. :'],
+  'publication_details': ['Washington, D.C. : National Aeronautics and Space Administration ; Springfield, Va. : For sale by the National Technical Information Service [distributor], 1971.'],
+  'subject': ['Nuclear electric power generation.',
+   'Heat pipes.',
+   'Feasibility.',
+   'Rankine cycle.',
+   'Heat radiators.',
+   'Heat pumps.',
+   'Electric generators.',
+   'Capillary flow.',
+   'Electric power production.',
+   'Heat pipes.',
+   'Rankine cycle.',
+   'Heat Transmission.',
+   'Heat pumps.',
+   'Electric generators.'],
+  'title': ['Study of a heat rejection system using capillary pumping / L.G. Neal, D.J. Wanous, and O.W. Clausen.'],
+  'url': ['http://hdl.handle.net/2027/uiug.30112106857045']},
+ 'holdings': [{'document_type': ['book'],
+   'held_at': [{'institution': {'institution_id': 'hat',
+      'name': 'Hathi Trust Digital Library'}}],
+   'item_id': 230169895,
+   'local_id': '011429427',
+   'physical_format': ['online']}],
+ 'uri': 'https://discover.libraryhub.jisc.ac.uk/search?id=230169895&rn=1'}`
+ 
 ## pec_eda.py
 
 The first script aims to get a high level overview of the state of the data and answers the following:
