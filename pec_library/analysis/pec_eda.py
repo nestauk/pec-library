@@ -34,7 +34,7 @@ from pec_library.getters.data_getters import get_library_data
 # +
 # get data per mission
 
-asf = get_library_data("climate change")
+asf = get_library_data("heat pumps")
 ahl = get_library_data("obesity")
 afs = get_library_data("early childhood")
 
