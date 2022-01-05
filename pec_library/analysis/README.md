@@ -44,6 +44,8 @@ The results are as follows:
 ![afs_1](eda_results/afs_1.png?raw=true)
 ![afs_2](eda_results/afs_2.png?raw=true)
 
+(NOTE: I quickly pulled years from publication details so the graphs might have some funny min. and max years.)
+
 Some key findings from the initial overview of the data include:
 
 1. **Data is relatively incomplete.** However...
@@ -71,8 +73,8 @@ My main questions/themes for you are:
 
 0. A general sense check of the above goal. Do you think this seems like an interesting goal? Do you think there are more interesting questions to ask of the networks/data?
 
-1. Ways of expanding the network beyond data derived from the initial 'seed' keyword - we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the network?
+1. Ways of expanding the network beyond data derived from the initial 'seed' keyword - we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the networks?
 
-2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so?
+2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication details incl. year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so?
 
 3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting?
