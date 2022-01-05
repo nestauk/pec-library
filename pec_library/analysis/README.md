@@ -27,17 +27,17 @@ The results are as follows:
 ### 'heat pumps'
 
 ![asf_1](eda_results/asf_1.png?raw=true)
-![asf_2](/eda_results/asf_2.png?raw=true)
+![asf_2](eda_results/asf_2.png?raw=true)
 
 ### 'obesity'
 
-![ahl_1](/eda_results/ahl_1.png?raw=true)
-![ahl_2](/eda_results/ahl_2.png?raw=true)
+![ahl_1](eda_results/ahl_1.png?raw=true)
+![ahl_2](eda_results/ahl_2.png?raw=true)
 
 ### 'early childhood'
 
-![afs_1](/eda_results/afs_1.png?raw=true)
-![afs_2](/eda_results/afs_2.png?raw=true)
+![afs_1](eda_results/afs_1.png?raw=true)
+![afs_2](eda_results/afs_2.png?raw=true)
 
 Some key findings from the initial overview of the data include:
 
