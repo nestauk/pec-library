@@ -47,20 +47,25 @@ Some key findings from the initial overview of the data include:
 
 ## pec_eda_networks.py
 
-**Some experiments**
-1. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error.
+As a result of the initial general data quality check, we decided to focus on using data that was complete. Namely, each material's subject list and publication details. 
 
-2. keyword query expansion based on eigenvector centrality  
-3. node attribute ideas - language of subject node, entity resolution of node 
+In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists. We played around with:
+
+1. preprocessing subject lists 
+2. running an initial community detection algorithm to explore subject clusters
+3. expanding the initial network by keyword query expansion based on eigenvector centrality     
+4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error. 
 
 ## Questions for George
 
-0. a general sense check
-	- does this seem interesting? 
-1. Which possible next steps sound most promising? 
-	- analysing subject clusters over time
-		- when where subject clusters first introduced? Do subject cluster become more or less 'dense' over time?  
-	- adding and analysing node attributes
-		- what additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting? 
-2. More specifically, how best to capture time?
-	- each materal has a list of subjects associated to it and publication year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so? 
+**Goal:** Ultimately, we _think_ want to cluster networks of subjects across the missions over time and analyse them i.e. when were subject clusters introduced? Do subject clusters become more or less 'dense' over time? What does that mean about how publications have been talking about these mission areas? 
+
+My main questions/themes for you are:
+
+0. A general sense check of the above goal
+
+1. Ways of expanding the network beyond data derived from the initial 'seed' keyword -  we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the network?
+
+2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so? 
+
+3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting? 
