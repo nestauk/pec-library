@@ -11,7 +11,7 @@ Both scripts rely on the following keywords as the initial 'seed' keywords to qu
 `ahl = "obesity"`
 `afs = "early childhood"`
 
-The first script reports on general data quality across all three missions, while the second uses `asf_keyword` for network eda. 
+The first script reports on general data quality across all three missions, while the second uses `asf_keyword` for network eda.
 
 ## pec_eda.py
 
@@ -23,7 +23,8 @@ The first script aims to get a high level overview of the state of the data and 
 4. How many books are published over time?
 5. Holdings EDA - document types count, how many institutions on average?
 
-The results are as follows: 
+The results are as follows:
+
 ### 'heat pumps'
 
 ![asf_1](eda_results/asf_1.png?raw=true)
@@ -41,31 +42,31 @@ The results are as follows:
 
 Some key findings from the initial overview of the data include:
 
-1. **Data is relatively incomplete.** However... 
-2. **Title, Subject and Publication Details relatively complete.** 
+1. **Data is relatively incomplete.** However...
+2. **Title, Subject and Publication Details relatively complete.**
 3. **Similar holding institutions across Missions.** Top holding institutions tend to be large libraries with diverse collections.
 
 ## pec_eda_networks.py
 
-As a result of the initial general data quality check, we decided to focus on using data that was complete. Namely, each material's subject list and publication details. 
+As a result of the initial general data quality check, we decided to focus on using data that was complete. Namely, each material's subject list and publication details.
 
 In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists. We played around with:
 
-1. preprocessing subject lists 
+1. preprocessing subject lists
 2. running an initial community detection algorithm to explore subject clusters
-3. expanding the initial network by keyword query expansion based on eigenvector centrality     
-4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error. 
+3. expanding the initial network by keyword query expansion based on eigenvector centrality
+4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error.
 
 ## Questions for George
 
-**Goal:** Ultimately, we _think_ want to cluster networks of subjects across the missions over time and analyse them i.e. when were subject clusters introduced? Do subject clusters become more or less 'dense' over time? What does that mean about how publications have been talking about these mission areas? 
+**Goal:** Ultimately, we _think_ want to cluster networks of subjects across the missions over time and analyse them i.e. when were subject clusters introduced? Do subject clusters become more or less 'dense' over time? What does that mean about how publications have been talking about these mission areas?
 
 My main questions/themes for you are:
 
-0. A general sense check of the above goal
+0. A general sense check of the above goal. Do you think this seems like an interesting goal? Do you think there are more interesting questions to ask of the networks/data?
 
-1. Ways of expanding the network beyond data derived from the initial 'seed' keyword -  we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the network?
+1. Ways of expanding the network beyond data derived from the initial 'seed' keyword - we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the network?
 
-2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so? 
+2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so?
 
-3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting? 
+3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting?
