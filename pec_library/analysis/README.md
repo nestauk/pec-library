@@ -41,14 +41,14 @@ The results are as follows:
 
 Some key findings from the initial overview of the data include:
 
-1. *Data is relatively incomplete.* However... 
-2. *Title, Subject and Publication Details relatively complete.* 
-3. *Similar holding institutions across Missions.* Top holding institutions tend to be large libraries with diverse collections.
+1. **Data is relatively incomplete.** However... 
+2. **Title, Subject and Publication Details relatively complete.** 
+3. **Similar holding institutions across Missions.** Top holding institutions tend to be large libraries with diverse collections.
 
 ## pec_eda_networks.py
 
-*Some experiments*
-1. taking a random sample of the API -> *API issues.* can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error.
+**Some experiments**
+1. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error.
 
 2. keyword query expansion based on eigenvector centrality  
 3. node attribute ideas - language of subject node, entity resolution of node 
