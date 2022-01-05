@@ -13,36 +13,10 @@ Both scripts rely on the following keywords as the initial 'seed' keywords to qu
 
 The first script reports on general data quality across all three missions, while the second uses `asf_keyword` for network eda.
 
-
 When you query the API by keyword, the search will query the whole entry, not a specificed field. When you query the API by keyword, the data looks like:
 
-`{'bibliographic_data': {'author': ['Neal, L. G.'],
-  'physical_description': ['ix, 227 p. :'],
-  'publication_details': ['Washington, D.C. : National Aeronautics and Space Administration ; Springfield, Va. : For sale by the National Technical Information Service [distributor], 1971.'],
-  'subject': ['Nuclear electric power generation.',
-   'Heat pipes.',
-   'Feasibility.',
-   'Rankine cycle.',
-   'Heat radiators.',
-   'Heat pumps.',
-   'Electric generators.',
-   'Capillary flow.',
-   'Electric power production.',
-   'Heat pipes.',
-   'Rankine cycle.',
-   'Heat Transmission.',
-   'Heat pumps.',
-   'Electric generators.'],
-  'title': ['Study of a heat rejection system using capillary pumping / L.G. Neal, D.J. Wanous, and O.W. Clausen.'],
-  'url': ['http://hdl.handle.net/2027/uiug.30112106857045']},
- 'holdings': [{'document_type': ['book'],
-   'held_at': [{'institution': {'institution_id': 'hat',
-      'name': 'Hathi Trust Digital Library'}}],
-   'item_id': 230169895,
-   'local_id': '011429427',
-   'physical_format': ['online']}],
- 'uri': 'https://discover.libraryhub.jisc.ac.uk/search?id=230169895&rn=1'}`
- 
+`{'bibliographic_data': {'author': ['Neal, L. G.'], 'physical_description': ['ix, 227 p. :'], 'publication_details': ['Washington, D.C. : National Aeronautics and Space Administration ; Springfield, Va. : For sale by the National Technical Information Service [distributor], 1971.'], 'subject': ['Nuclear electric power generation.', 'Heat pipes.', 'Feasibility.', 'Rankine cycle.', 'Heat radiators.', 'Heat pumps.', 'Electric generators.', 'Capillary flow.', 'Electric power production.', 'Heat pipes.', 'Rankine cycle.', 'Heat Transmission.', 'Heat pumps.', 'Electric generators.'], 'title': ['Study of a heat rejection system using capillary pumping / L.G. Neal, D.J. Wanous, and O.W. Clausen.'], 'url': ['http://hdl.handle.net/2027/uiug.30112106857045']}, 'holdings': [{'document_type': ['book'], 'held_at': [{'institution': {'institution_id': 'hat', 'name': 'Hathi Trust Digital Library'}}], 'item_id': 230169895, 'local_id': '011429427', 'physical_format': ['online']}], 'uri': 'https://discover.libraryhub.jisc.ac.uk/search?id=230169895&rn=1'}`
+
 ## pec_eda.py
 
 The first script aims to get a high level overview of the state of the data and answers the following:
@@ -80,12 +54,14 @@ Some key findings from the initial overview of the data include:
 
 As a result of the initial general data quality check, we decided to focus on using data that was complete. Namely, each material's subject list and publication details.
 
-In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists. We played around with:
+In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists. You can take a look at the `asf_keyword` subject network by downloading and opening `climate.html` on your browser.
+
+We also played around with:
 
 1. preprocessing subject lists
 2. running an initial community detection algorithm to explore subject clusters
 3. expanding the initial network by keyword query expansion based on eigenvector centrality
-4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of english language publications - otherwise, the API returns a 500 server error.
+4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of the API - otherwise, the API returns a 500 server error.
 
 ## Questions for George
 
