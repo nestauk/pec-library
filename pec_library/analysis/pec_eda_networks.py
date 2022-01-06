@@ -34,13 +34,12 @@ from pec_library.getters.data_getters import get_library_data
 
 # text cleaning packages
 import string
-from toolz import pipe
 import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from pattern.text.en import singularize
 import community as community_louvain
-from time import sleep
+import random
 
 # %%
 # choose initial key word per mission for API search
@@ -189,6 +188,7 @@ def build_subject_matrix(mission_data, keyword):
 # build subject matrix using climate change data
 G_climate = build_subject_matrix(asf, "heat pump")
 
+
 # %% [markdown]
 # ### 1.1.2 Prune network based on minimum spanning tree
 # where optimal network simplification is where the loss of connectivity should be minimized.
@@ -196,8 +196,7 @@ G_climate = build_subject_matrix(asf, "heat pump")
 
 # %%
 # minimum spanning tree
-G_climate_min_pruned = nx.minimum_spanning_tree(G_climate)
-
+#G_climate_min_pruned = nx.minimum_spanning_tree(G_climate)
 
 # %% [markdown]
 # ## 1.2 Network EDA
@@ -230,19 +229,6 @@ clustering_coefs = nx.clustering(G_climate)
 pd.DataFrame(list(clustering_coefs.values())).plot.hist()
 
 # %% [markdown]
-# ## 1.3 visualise data
-
-# %%
-# visualise climate subject co-occurence matrix
-
-# remove self loops in graph
-G_climate.remove_edges_from(list(nx.selfloop_edges(G_climate)))
-
-g = Network(height=500, width=800, notebook=True)
-g.from_nx(G_climate)
-g.show("climate.html")
-
-# %% [markdown]
 # ### 1.4 run community detection algorithm
 
 # %%
@@ -266,6 +252,49 @@ communities = list(set(dfcommunities["cluster_group"].tolist()))
 print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
 print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
 print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
+
+# %% [markdown]
+# ### 1.4.1 add cluster names
+# simplest name definition = node with highest 'local' degree_centrality per community
+
+# %%
+cluster_groups = list(set(dfcommunities['cluster_group'].tolist()))
+cluster_names = dict()
+for cluster_num in cluster_groups:
+    cluster_nodes = [node[0] for node in G_climate.nodes(data=True) if node[1]['cluster_group'] == cluster_num]
+    cluster_subgraphs = G_climate.subgraph(cluster_nodes)
+    subgraph_degree_centrality = nx.degree_centrality(cluster_subgraphs)
+    cluster_names[cluster_num] = list({node for node, degree in sorted(subgraph_degree_centrality.items(), key=lambda item: item[1], reverse=True)})[0]
+    
+
+# %% [markdown]
+# ## 1.5 visualise clustered data
+
+# %%
+#generate HEX codes for each cluster number 
+clust_color_dict = dict()
+for color, cluster_name in zip(cluster_groups, cluster_names):
+    hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
+    clust_color_dict[color] = hex_color
+    
+#add colors and cluster names 
+for node in G_climate.nodes(data=True):
+    cluster_num = node[1]['cluster_group']
+    for clust_color_num, clust_color_code in clust_color_dict.items():
+        if cluster_num == clust_color_num:
+            node[1]['color'] = clust_color_code
+    for clust_color_num, cluster_name in cluster_names.items():
+        if cluster_num == clust_color_num:
+            node[1]['cluster_name'] = cluster_name
+
+# %%
+# remove self loops in graph
+G_climate.remove_edges_from(list(nx.selfloop_edges(G_climate)))
+#instantiate pyvis graph
+g = Network(height=800, width='75%')
+g.from_nx(G_climate)
+# visualise climate subject co-occurence matrix
+g.show("heat_pumps.html")
 
 
 # %% [markdown]
