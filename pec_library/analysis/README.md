@@ -85,6 +85,6 @@ My main questions/themes for you are:
 
 2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication details incl. year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so?
 
-3. Want to play around with network similarity measures - any ideas here? looks like 
+3. Want to play around with network similarity measures - ideas here? 
 
 3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting?
