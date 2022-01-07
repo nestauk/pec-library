@@ -62,22 +62,26 @@ asf = get_library_data(asf_keyword)
 # ## 1.0 get years
 
 # %%
-#add year
+# add year
 
 for book_id, book in enumerate(asf):
-    if 'publication_details' in book['bibliographic_data'].keys():
-        book_pub_detail = book['bibliographic_data']['publication_details'][0]
+    if "publication_details" in book["bibliographic_data"].keys():
+        book_pub_detail = book["bibliographic_data"]["publication_details"][0]
         potential_years = re.findall(r"[0-9]{4,7}", book_pub_detail)
         if potential_years != []:
             potential_years = potential_years[0]
-            if potential_years.startswith('1') or potential_years.startswith('2'):
-                potential_years_datetime_format = datetime.strptime(potential_years, '%Y')
-                if 'subject' in book['bibliographic_data']:
-                    book['bibliographic_data']['publication_year'] = potential_years_datetime_format
+            if potential_years.startswith("1") or potential_years.startswith("2"):
+                potential_years_datetime_format = datetime.strptime(
+                    potential_years, "%Y"
+                )
+                if "subject" in book["bibliographic_data"]:
+                    book["bibliographic_data"][
+                        "publication_year"
+                    ] = potential_years_datetime_format
         else:
-            book['bibliographic_data']['publication_year'] = 'no year found'
+            book["bibliographic_data"]["publication_year"] = "no year found"
     else:
-        book['bibliographic_data']['publication_year'] = 'no publication_details found'
+        book["bibliographic_data"]["publication_year"] = "no publication_details found"
 
 
 # %% [markdown]
@@ -124,8 +128,8 @@ def clean_subject(subjects):
             sub.lower() for sub in subject if sub not in stopwords.words("english")
         ]
         # remove digits
-        no_digits = str.maketrans('', '', digits)
-        subject = [sub.translate(no_digits) for sub in subject]    
+        no_digits = str.maketrans("", "", digits)
+        subject = [sub.translate(no_digits) for sub in subject]
         # trim trailing whitespace
         subject = [re.sub("\s+", " ", sub).strip() for sub in subject]
         # lemmatize subject
@@ -220,7 +224,7 @@ G_climate = build_subject_matrix(asf, "heat pump")
 
 # %%
 # minimum spanning tree
-#G_climate_min_pruned = nx.minimum_spanning_tree(G_climate)
+# G_climate_min_pruned = nx.minimum_spanning_tree(G_climate)
 
 # %% [markdown]
 # ## 1.2 Network EDA
@@ -282,43 +286,56 @@ print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities
 # simplest name definition = node with highest 'local' degree_centrality per community
 
 # %%
-cluster_groups = list(set(dfcommunities['cluster_group'].tolist()))
+cluster_groups = list(set(dfcommunities["cluster_group"].tolist()))
 cluster_names = dict()
 for cluster_num in cluster_groups:
-    cluster_nodes = [node[0] for node in G_climate.nodes(data=True) if node[1]['cluster_group'] == cluster_num]
+    cluster_nodes = [
+        node[0]
+        for node in G_climate.nodes(data=True)
+        if node[1]["cluster_group"] == cluster_num
+    ]
     cluster_subgraphs = G_climate.subgraph(cluster_nodes)
     subgraph_degree_centrality = nx.degree_centrality(cluster_subgraphs)
-    cluster_names[cluster_num] = list({node for node, degree in sorted(subgraph_degree_centrality.items(), key=lambda item: item[1], reverse=True)})[0]
+    cluster_names[cluster_num] = list(
+        {
+            node
+            for node, degree in sorted(
+                subgraph_degree_centrality.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        }
+    )[0]
 
-#add cluster name to df
-dfcommunities['cluster_name'] = dfcommunities['cluster_group'].map(cluster_names)
+# add cluster name to df
+dfcommunities["cluster_name"] = dfcommunities["cluster_group"].map(cluster_names)
 
 
 # %% [markdown]
 # ## 1.5 visualise clustered data
 
 # %%
-#generate HEX codes for each cluster number 
+# generate HEX codes for each cluster number
 clust_color_dict = dict()
 for color, cluster_name in zip(cluster_groups, cluster_names):
     hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
     clust_color_dict[color] = hex_color
-    
-#add colors and cluster names 
+
+# add colors and cluster names
 for node in G_climate.nodes(data=True):
-    cluster_num = node[1]['cluster_group']
+    cluster_num = node[1]["cluster_group"]
     for clust_color_num, clust_color_code in clust_color_dict.items():
         if cluster_num == clust_color_num:
-            node[1]['color'] = clust_color_code
+            node[1]["color"] = clust_color_code
     for clust_color_num, cluster_name in cluster_names.items():
         if cluster_num == clust_color_num:
-            node[1]['cluster_name'] = cluster_name
+            node[1]["cluster_name"] = cluster_name
 
 # %%
 # remove self loops in graph
 G_climate.remove_edges_from(list(nx.selfloop_edges(G_climate)))
-#instantiate pyvis graph
-g = Network(height=800, width='75%')
+# instantiate pyvis graph
+g = Network(height=800, width="75%")
 g.from_nx(G_climate)
 # visualise climate subject co-occurence matrix
 g.show("heat_pumps.html")
@@ -418,13 +435,26 @@ combined = nx.compose(G_climate, expanded_books_graph)
 # ### 3.1 subjects at two time stamps
 
 # %%
-asf_with_dates = [book for book in asf if 'publication_year' in book['bibliographic_data'].keys() and not isinstance(book['bibliographic_data']['publication_year'], str)]
+asf_with_dates = [
+    book
+    for book in asf
+    if "publication_year" in book["bibliographic_data"].keys()
+    and not isinstance(book["bibliographic_data"]["publication_year"], str)
+]
 
 # %%
-#before 1990
-asf_t1 = [book for book in asf_with_dates if book['bibliographic_data']['publication_year'] < datetime.strptime('1990','%Y')]
-#after 1990
-asf_t2 = [book for book in asf_with_dates if book['bibliographic_data']['publication_year'] >= datetime.strptime('1990','%Y')]
+# before 1990
+asf_t1 = [
+    book
+    for book in asf_with_dates
+    if book["bibliographic_data"]["publication_year"] < datetime.strptime("1990", "%Y")
+]
+# after 1990
+asf_t2 = [
+    book
+    for book in asf_with_dates
+    if book["bibliographic_data"]["publication_year"] >= datetime.strptime("1990", "%Y")
+]
 
 # %%
 print(len(asf_t1))
@@ -440,7 +470,7 @@ G_climate_t2 = build_subject_matrix(asf_t2, "heat pump")
 
 
 # %%
-#at t1
+# at t1
 def cluster_subject_network(G):
     print("FOR A SUSTAINABLE FUTURE")
     clusters = community_louvain.best_partition(G)
@@ -451,7 +481,9 @@ def cluster_subject_network(G):
     )
     dfcommunities.columns = ["subject", "cluster_group"]
 
-    print(f"there are {len(list(set(dfcommunities['cluster_group'].tolist())))} clusters.")
+    print(
+        f"there are {len(list(set(dfcommunities['cluster_group'].tolist())))} clusters."
+    )
     print(
         f"the modularity of the clusters is {community_louvain.modularity(clusters, G)}"
     )
@@ -462,64 +494,81 @@ def cluster_subject_network(G):
     print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
     print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
     print(dfcommunities[(dfcommunities["cluster_group"] == random.choice(communities))])
-    
-    
-    #add cluster names
-    cluster_groups = list(set(dfcommunities['cluster_group'].tolist()))
+
+    # add cluster names
+    cluster_groups = list(set(dfcommunities["cluster_group"].tolist()))
     cluster_names = dict()
     for cluster_num in cluster_groups:
-        cluster_nodes = [node[0] for node in G.nodes(data=True) if node[1]['cluster_group'] == cluster_num]
+        cluster_nodes = [
+            node[0]
+            for node in G.nodes(data=True)
+            if node[1]["cluster_group"] == cluster_num
+        ]
         cluster_subgraphs = G.subgraph(cluster_nodes)
         subgraph_degree_centrality = nx.degree_centrality(cluster_subgraphs)
-        cluster_names[cluster_num] = list({node for node, degree in sorted(subgraph_degree_centrality.items(), key=lambda item: item[1], reverse=True)})[0]
-    
-    dfcommunities['cluster_name'] = dfcommunities['cluster_group'].map(cluster_names)
+        cluster_names[cluster_num] = list(
+            {
+                node
+                for node, degree in sorted(
+                    subgraph_degree_centrality.items(),
+                    key=lambda item: item[1],
+                    reverse=True,
+                )
+            }
+        )[0]
 
-    #generate HEX codes for each cluster number 
+    dfcommunities["cluster_name"] = dfcommunities["cluster_group"].map(cluster_names)
+
+    # generate HEX codes for each cluster number
     clust_color_dict = dict()
     for color, cluster_name in zip(cluster_groups, cluster_names):
         hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
         clust_color_dict[color] = hex_color
 
-    #add colors and cluster names 
+    # add colors and cluster names
     for node in G.nodes(data=True):
-        cluster_num = node[1]['cluster_group']
+        cluster_num = node[1]["cluster_group"]
         for clust_color_num, clust_color_code in clust_color_dict.items():
             if cluster_num == clust_color_num:
-                node[1]['color'] = clust_color_code
+                node[1]["color"] = clust_color_code
         for clust_color_num, cluster_name in cluster_names.items():
             if cluster_num == clust_color_num:
-                node[1]['cluster_name'] = cluster_name
-    
+                node[1]["cluster_name"] = cluster_name
+
     return dfcommunities, G
 
+
 # %%
-#at t1
+# at t1
 t1_communities, G_t1 = cluster_subject_network(G_climate_t1)
 
 # %%
 # remove self loops in graph
 G_t1.remove_edges_from(list(nx.selfloop_edges(G_t1)))
-#instantiate pyvis graph
-g = Network(height=500, width='75%', notebook=True)
+# instantiate pyvis graph
+g = Network(height=500, width="75%", notebook=True)
 g.from_nx(G_t1)
 # visualise climate subject co-occurence matrix
 g.show("heat_pumps_t1.html")
 
 # %%
-#at t2
+# at t2
 t2_communities, G_t2 = cluster_subject_network(G_climate_t2)
 
 # remove self loops in graph
 G_t2.remove_edges_from(list(nx.selfloop_edges(G_t2)))
-#instantiate pyvis graph
-g = Network(height=500, width='75%', notebook=True)
+# instantiate pyvis graph
+g = Network(height=500, width="75%", notebook=True)
 g.from_nx(G_t2)
 # visualise climate subject co-occurence matrix
 g.show("heat_pumps_t2.html")
 
 # %%
-t1_communities.groupby('cluster_name').count().sort_values(by='subject', ascending=False)
+t1_communities.groupby("cluster_name").count().sort_values(
+    by="subject", ascending=False
+)
 
 # %%
-t2_communities.groupby('cluster_name').count().sort_values(by='subject', ascending=False)
+t2_communities.groupby("cluster_name").count().sort_values(
+    by="subject", ascending=False
+)

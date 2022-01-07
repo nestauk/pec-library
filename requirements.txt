@@ -9,3 +9,10 @@ tqdm
 filelock
 typer
 sh
+pytrends
+boto3
+networkx
+pyvis
+nltk
+python-louvain
+Pattern

@@ -56,14 +56,22 @@ Some key findings from the initial overview of the data include:
 
 As a result of the initial general data quality check, we decided to focus on using data that was complete. Namely, each material's subject list and publication details.
 
-In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists. You can take a look at the `asf_keyword` subject network by downloading and opening `climate.html` on your browser.
+In this script, we build and explore undirected, weighted networks of subjects where each node is a subject and each edge represents subject co-occurence in subject lists.
+
+We clustered the network using a community detection algorithm and named the each cluster using the name of the node with the highest 'local' degree centrality per community. You can take a look at the `asf_keyword` subject network by downloading and opening `heat_pumps.html` on your browser.  
+
+As a preliminary go at exploring the network temporally, we also built and clustered the network at two time points: before 1990 and after 1990.
+
+Some observations on comparing the two networks at two time periods - before 1990 and after 1990 (for asf):
+
+1. After 1990, the number of subject clusters almost doubled (from 26 before 1990 to 44).    
+2. The top 5 largest clusters before 1990: water pump, geothermal, flow in heat exchangers, overload and solar energy research. The top 5 largest clusters after 1990: geothermal, lumber drying equipment and supply, performance testing, equipment safety, dynamic pricing. Qualitatively, a number of smaller clusters after 1990 appear to be more about heat pump locations and policy i.e. 'energy conservation germany', 'renewable energy sources government policy wale' and 'renewable energy sources law and leagislation scotland'.  
 
 We also played around with:
 
 1. preprocessing subject lists
-2. running an initial community detection algorithm to explore subject clusters
-3. expanding the initial network by keyword query expansion based on eigenvector centrality
-4. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of the API - otherwise, the API returns a 500 server error.
+2. expanding the initial network by keyword query expansion based on eigenvector centrality
+3. taking a random sample of the API -> **API issues.** can randomly-ish sample up to 400 pages of the API - otherwise, the API returns a 500 server error.
 
 ## Questions for George
 
@@ -76,5 +84,7 @@ My main questions/themes for you are:
 1. Ways of expanding the network beyond data derived from the initial 'seed' keyword - we played around with taking the most central subject nodes from the initial graph and using them as keywords to query the API. Any other ideas? Do you think its even necessary to expand the networks?
 
 2. How best to approach the time component of the question? Each material has a list of subjects associated to it and publication details incl. year. We want to assign a year to each subject node by finding the 'average age' of the subject. How dubious does this sound? Other ways of doing so?
+
+3. Want to play around with network similarity measures - any ideas here? looks like 
 
 3. Do you think its worth adding and analysing node attributes? What additional 'metadata' can we include about subject nodes beyond? i.e. subject langauage, entity type. What can we do with that information that might be interesting?
