@@ -133,16 +133,14 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
     """
 
     # filter records for records w/ subject AND publication year
+    all_library_data = [book for book in all_library_data if 'subject' and 'publication_year' in book["bibliographic_data"].keys()]
+
     subjects = [
         book["bibliographic_data"]["subject"]
         for book in all_library_data
-        if "subject" and "publication_year" in book["bibliographic_data"].keys()
     ]
 
-    # Get all of the unique subjects
-    subjects = tuple(sorted(set(itertools.chain(*subjects))))
-
-    # Get a list of all of the combinations you have
+    # Get a list of all of subject combinations 
     expanded_subjects = itertools.chain(
         *[tuple(itertools.combinations(d, 2)) for d in subjects]
     )
@@ -162,13 +160,12 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
     for subject_pair in weighted_expanded_subjects:
         years = []
         for record in all_library_data:
-            if "subject" in record["bibliographic_data"].keys():
-                if (
-                    subject_pair[0]
-                    and subject_pair[1] in record["bibliographic_data"]["subject"]
-                ):
-                    years.append(record["bibliographic_data"]["publication_year"])
-                    subject_pair_years[subject_pair] = years
+            if (
+                subject_pair[0]
+                and subject_pair[1] in record["bibliographic_data"]["subject"]
+            ):
+                years.append(record["bibliographic_data"]["publication_year"])
+                subject_pair_years[subject_pair] = years
 
     # instantiate and populate network
     G = nx.Graph()
