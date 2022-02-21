@@ -1,0 +1,3 @@
+min_edge_weight: 1
+timeslice_interval: 10
+network_path: 'outputs/G_library.pickle'
