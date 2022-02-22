@@ -22,6 +22,7 @@ KEYWORDS = [
     "solar panel*",
     "home retrofit*",
     "decarbonisation",
+    "renewable energy",
     "solar pv",
 ]
 
@@ -133,14 +134,15 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
     """
 
     # filter records for records w/ subject AND publication year
-    all_library_data = [book for book in all_library_data if 'subject' and 'publication_year' in book["bibliographic_data"].keys()]
-
-    subjects = [
-        book["bibliographic_data"]["subject"]
+    all_library_data = [
+        book
         for book in all_library_data
+        if "subject" and "publication_year" in book["bibliographic_data"].keys()
     ]
 
-    # Get a list of all of subject combinations 
+    subjects = [book["bibliographic_data"]["subject"] for book in all_library_data]
+
+    # Get a list of all of subject combinations
     expanded_subjects = itertools.chain(
         *[tuple(itertools.combinations(d, 2)) for d in subjects]
     )

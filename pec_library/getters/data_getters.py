@@ -104,7 +104,7 @@ def save_to_s3(s3, bucket_name, output_var, output_file_dir):
 
     if fnmatch(output_file_dir, "*.pkl") or fnmatch(output_file_dir, "*.pickle"):
         byte_obj = pickle.dumps(output_var)
-    obj.put(Body=byte_obj)
+        obj.put(Body=byte_obj)
 
     logger.info(f"Saved to s3://{bucket_name} + {output_file_dir} ...")
 
@@ -117,24 +117,10 @@ def load_s3_data(s3, bucket_name, file_name):
     file_name: S3 key to load
     """
     obj = s3.Object(bucket_name, file_name)
-    if fnmatch(file_name, "*.jsonl.gz"):
-        with gzip.GzipFile(fileobj=obj.get()["Body"]) as file:
-            return [json.loads(line) for line in file]
-    elif fnmatch(file_name, "*.jsonl"):
-        file = obj.get()["Body"].read().decode()
-        return [json.loads(line) for line in file]
-    elif fnmatch(file_name, "*.json.gz"):
-        with gzip.GzipFile(fileobj=obj.get()["Body"]) as file:
-            return json.load(file)
-    elif fnmatch(file_name, "*.json"):
-        file = obj.get()["Body"].read().decode()
-        return json.loads(file)
-    elif fnmatch(file_name, "*.csv"):
-        return pd.read_csv(os.path.join("s3://" + bucket_name, file_name))
-    elif fnmatch(file_name, "*.pkl") or fnmatch(file_name, "*.pickle"):
-        file = obj.get()["Body"].read().decode()
+    if fnmatch(file_name, "*.pkl") or fnmatch(file_name, "*.pickle"):
+        file = obj.get()["Body"].read()
         return pickle.loads(file)
     else:
         print(
-            'Function not supported for file type other than "*.jsonl.gz", "*.jsonl", or "*.json"'
+            'Function not supported for file type other than "*.jsonl.gz", ".pickle", "*.jsonl", or "*.json"'
         )
