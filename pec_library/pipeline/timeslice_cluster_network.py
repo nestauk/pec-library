@@ -28,6 +28,7 @@ if __name__ == "__main__":
     G_library_path = config_info["network_path"]
     G_timeslices_path = config_info["network_timeslices_path"]
     timeslice_interval = config_info["timeslice_interval"]
+    n_top = config_info["n_top"]
 
     # get network data
     G_library = load_s3_data(s3, BUCKET_NAME, G_library_path)
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 
     # add cluster name and cluster colors to sanitised timeslices
     subgraph_communities = add_cluster_colors(subgraph_communities)
-    subgraph_communities = add_cluster_names(subgraph_communities)
+    subgraph_communities = add_cluster_names(subgraph_communities, n_top)
 
     # save data
     save_to_s3(s3, BUCKET_NAME, subgraph_communities, G_timeslices_path)

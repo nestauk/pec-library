@@ -43,7 +43,7 @@ def get_subgraph_cluster_nodes(G_timeslice, cluster):
     ]
 
 
-def add_cluster_names(subgraph_communities: dict):
+def add_cluster_names(subgraph_communities: dict, n_top:int):
     """
     Generate tf-idf of each cluster at latest time point 
     and assign cluster name across all time slices for consistency.
