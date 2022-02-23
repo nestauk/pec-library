@@ -22,7 +22,6 @@ KEYWORDS = [
     "solar panel*",
     "home retrofit*",
     "decarbonisation",
-    "renewable energy",
     "solar pv",
 ]
 
@@ -159,7 +158,7 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
 
     # add time attribute to subject pairs
     subject_pair_years = {}
-    for subject_pair in weighted_expanded_subjects:
+    for subject_pair, weight in weighted_expanded_subjects.items():
         years = []
         for record in all_library_data:
             if (
@@ -167,11 +166,14 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
                 and subject_pair[1] in record["bibliographic_data"]["subject"]
             ):
                 years.append(record["bibliographic_data"]["publication_year"])
-                subject_pair_years[subject_pair] = years
+                subject_pair_years[subject_pair] = {"years published": years,
+                                                   "weight": weight}
 
     # instantiate and populate network
     G = nx.Graph()
-    for subject_pair, year in subject_pair_years.items():
-        G.add_edge(subject_pair[0], subject_pair[1], first_published=sorted(year)[0])
-
+    for subject_pair, subject_pair_info in subject_pair_years.items():
+        G.add_edge(subject_pair[0],
+                  subject_pair[1],
+                  first_published=sorted(subject_pair_info["years published"])[0],
+                  weight=subject_pair_info['weight'])
     return G

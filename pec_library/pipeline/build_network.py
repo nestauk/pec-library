@@ -23,6 +23,7 @@ if __name__ == "__main__":
     config_info = get_yaml_config(CONFIG_PATH)
     min_edge_weight = config_info["min_edge_weight"]
     G_library_path = config_info["network_path"]
+    raw_data_path = config_info["raw_data_path"]
 
     # get all library data across all keywords
     all_library_data = get_all_library_data(KEYWORDS)
@@ -43,3 +44,6 @@ if __name__ == "__main__":
 
     # save network to s3
     save_to_s3(s3, BUCKET_NAME, G_library, G_library_path)
+    #save raw data to s3
+    save_to_s3(s3, BUCKET_NAME, all_library_data, raw_data_path)
+    

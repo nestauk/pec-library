@@ -7,7 +7,6 @@ import networkx as nx
 from typing import Dict
 import leidenalg as la
 import igraph as ig
-import distance
 import numpy as np
 import random
 from collections import Counter
@@ -16,7 +15,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 ####
 
-
 def get_tfidf_top_features(documents: list, n_top: int):
     """
     get top n features using tfidf. 
@@ -24,9 +22,16 @@ def get_tfidf_top_features(documents: list, n_top: int):
     tfidf_vectorizer = TfidfVectorizer(stop_words="english")
     tfidf = tfidf_vectorizer.fit_transform(documents)
     importance = np.argsort(np.asarray(tfidf.sum(axis=0)).ravel())[::-1]
-    tfidf_feature_names = np.array(tfidf_vectorizer.get_feature_names())
+    tfidf_feature_names = np.array(tfidf_vectorizer.get_feature_names_out())
     return tfidf_feature_names[importance[:n_top]]
 
+
+def get_subgraph_cluster_nodes(G_timeslice, cluster):
+    return [
+        node_info["_nx_name"]
+        for node, node_info in G_timeslice.nodes(data=True)
+        if node_info["timeslice cluster number"] == cluster
+    ]
 
 def get_subgraph_clusters(G_timeslice):
     subgraph_cluster = [
@@ -34,13 +39,10 @@ def get_subgraph_clusters(G_timeslice):
     ]
     return [node[0] for node in Counter(subgraph_cluster).most_common()]
 
-
-def get_subgraph_cluster_nodes(G_timeslice, cluster):
-    return [
-        node
-        for node, node_info in G_timeslice.nodes(data=True)
-        if node_info["timeslice cluster number"] == cluster
-    ]
+def jaccard_similarity(list1, list2):
+    s1 = set(list1)
+    s2 = set(list2)
+    return float(len(s1.intersection(s2)) / len(s1.union(s2)))
 
 
 def add_cluster_names(subgraph_communities: dict, n_top: int):
@@ -80,6 +82,7 @@ def add_cluster_names(subgraph_communities: dict, n_top: int):
         )
         nx.set_node_attributes(subgraph, node_cluster_names, "timeslice cluster name")
 
+    return subgraph_communities
 
 def add_cluster_colors(subgraph_communities: dict):
     """Generates 6 digit HEX color codes per cluster per subgraph and appends HEX colors 
@@ -217,7 +220,7 @@ def sanitise_clusters(timeslice_x, timeslice_y):
             get_subgraph_cluster_nodes(timeslice_x, cluster_perm[0]),
             get_subgraph_cluster_nodes(timeslice_y, cluster_perm[1]),
         )
-        dists = 1 - distance.jaccard(timeslice_x_nodes, timeslice_y_nodes)
+        dists = jaccard_similarity(timeslice_x_nodes, timeslice_y_nodes)
         if dists != 0:
             perm_dists.append((cluster_perm, dists))
 
