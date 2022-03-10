@@ -4,21 +4,19 @@ cluster labels across timeslices to make communities comparable across time.
 """
 ####
 import networkx as nx
-from typing import Dict
+from typing import Dict, List
 import leidenalg as la
 import igraph as ig
 import numpy as np
 import random
+import statistics
 from collections import Counter
 import itertools
 from sklearn.feature_extraction.text import TfidfVectorizer
-
 ####
 
 def get_tfidf_top_features(documents: list, n_top: int):
-    """
-    get top n features using tfidf. 
-    """
+    """get top n features using tfidf."""
     tfidf_vectorizer = TfidfVectorizer(stop_words="english")
     tfidf = tfidf_vectorizer.fit_transform(documents)
     importance = np.argsort(np.asarray(tfidf.sum(axis=0)).ravel())[::-1]
@@ -26,38 +24,44 @@ def get_tfidf_top_features(documents: list, n_top: int):
     return tfidf_feature_names[importance[:n_top]]
 
 
-def get_subgraph_cluster_nodes(G_timeslice, cluster):
+def get_subgraph_cluster_nodes(G_timeslice, cluster: str) -> List:
+    """helper function to get cluster nodes per subgraph."""
     return [
         node_info["_nx_name"]
         for node, node_info in G_timeslice.nodes(data=True)
         if node_info["timeslice cluster number"] == cluster
     ]
 
-def get_subgraph_clusters(G_timeslice):
+def get_subgraph_clusters(G_timeslice) -> List:
+    """helper function to get ordered list of all subgraph 
+    clusters from largest to smallest."""
     subgraph_cluster = [
         node[1] for node in G_timeslice.nodes(data="timeslice cluster number")
     ]
     return [node[0] for node in Counter(subgraph_cluster).most_common()]
 
-def jaccard_similarity(list1, list2):
+
+def jaccard_similarity(list1: List, list2: List) -> float:
+    """helper function to calculate the jaccard similarity between
+    two lists."""
     s1 = set(list1)
     s2 = set(list2)
     return float(len(s1.intersection(s2)) / len(s1.union(s2)))
 
 
-def add_cluster_names(subgraph_communities: dict, n_top: int):
+def add_cluster_names(subgraph_communities: dict, n_top: int) -> Dict:
     """
-    Generate tf-idf of each cluster at latest time point 
+    Generate tf-idf of each cluster at latest time point
     and assign cluster name across all time slices for consistency.
 
     Args:
         subgraph_communities (Dict): A dictionary where the keys refer to timeslices
         and the values are undirected networkx subgraphs with timeslice cluster
-        group node attribute. 
+        group node attribute.
     Returns:
         subgraph_communities (Dict): A dictionary where the keys refer to timeslices
         and the values are undirected networkx subgraphs with timeslice cluster
-        group and cluster name attributes.   
+        group and cluster name attributes.
     """
     community_names = dict()
     for subgraph in subgraph_communities.values():
@@ -84,17 +88,19 @@ def add_cluster_names(subgraph_communities: dict, n_top: int):
 
     return subgraph_communities
 
-def add_cluster_colors(subgraph_communities: dict):
-    """Generates 6 digit HEX color codes per cluster per subgraph and appends HEX colors 
+
+def add_cluster_colors(subgraph_communities: dict) -> Dict:
+    """Generates 6 digit HEX color codes per cluster per subgraph and appends HEX colors
     as 'cluster color' node attribute to subgraphs.
+
     Args:
         subgraph_communities (Dict): A dictionary where the keys refer to timeslices
         and the values are undirected networkx subgraphs with timeslice cluster
-        group node attributes. 
+        group node attributes.
     Returns:
            subgraph_communities (Dict): A dictionary where the keys refer to timeslices
         and the values are undirected networkx subgraphs with timeslice cluster
-        group and cluster color node attributes.   
+        group and cluster color node attributes.
     """
     cluster_numbers = [
         list(
@@ -129,63 +135,57 @@ def add_cluster_colors(subgraph_communities: dict):
     return subgraph_communities
 
 
-def timeslice_subject_pair_coo_graph(G, timeslice_interval: int) -> Dict:
+def timeslice_subject_pair_coo_graph(G, timeslice_interval: int, min_timeslice: int) -> Dict:
     """
     Creates timesliced subject-pair co-occurance subgraphs every X year interval.
 
-    Inputs:
-        G (graph): subject pair cooccurance graph with time based edge attributes. 
-        timeslice_interval (int): timeslice interval in years.    
+    Args:
+        G (Graph): subject pair cooccurance graph with time based edge attributes.
+        timeslice_interval (int): timeslice interval in years.
 
-    Output:
-        G_timeslices (dicts): A dictionary where keys refer to timeslices and 
-        the values refer to subject pair cooccurance subgraphs. 
+    Returns:
+        G_timeslices (Dict): A dictionary where keys refer to timeslices and
+        the values refer to subject pair cooccurance subgraphs.
     """
     pairs_first_published = [e["first_published"] for u, v, e in G.edges(data=True)]
-    min_timeslice, max_timeslice = (
-        min(pairs_first_published) + timeslice_interval,
-        max(pairs_first_published) + timeslice_interval,
-    )
 
     G_timeslices = dict()
     for i, timeslice in enumerate(
-        range(min_timeslice, max_timeslice, timeslice_interval)
+        range(min_timeslice, max(pairs_first_published) + timeslice_interval, timeslice_interval)
     ):
         subgraph_edges = [
             (u, v)
             for u, v, e in G.edges(data=True)
             if e["first_published"] <= timeslice
         ]
-        # subgraph induced by specified edges
-        G_timeslices["G_timeslice_" + str(i)] = G.edge_subgraph(subgraph_edges)
 
+        # subgraph induced by specified edges
+        G_timeslices["G_timeslice_" + str(i)] =  nx.Graph(nx.edge_subgraph(G, subgraph_edges))
+                                               
     return G_timeslices
 
 
 def cluster_timeslice_subject_pair_coo_graph(G_timeslices: dict):
     """
-    Clusters timesliced subject-pair co-occurance subgraphs every X year interval 
+    Clusters timesliced subject-pair co-occurance subgraphs every X year interval
     using the leiden algorithm.
 
-    Input:
-        G_timeslices (dict): A dictionary where keys refer to timeslices and 
-        the values refer to subject pair cooccurance subgraphs. 
+    Args:
+        G_timeslices (Dict): A dictionary where keys refer to timeslices and
+        the values refer to subject pair cooccurance subgraphs.
 
-    Output:
-        modularity (dict): A dictionary where keys refer to timeslices and
-        values refer to subgraph partition modularity. 
-        subgraph_communities (dict): A dictionary where keys refer to timeslices and 
-        the values refer to subject pair cooccurance subgraphs w/ 
-        a node cluster attributes. 
+    Returns:
+        subgraph_communities (Dict): A dictionary where keys refer to timeslices and
+        the values refer to subject pair cooccurance subgraphs w/
+        a node cluster attributes.
     """
     subgraph_communities = dict()
-    modularity = dict()
 
     for timeslice, subgraph in G_timeslices.items():
         subgraph_igraph = ig.Graph.from_networkx(subgraph)
         partitions = la.find_partition(subgraph_igraph, la.ModularityVertexPartition)
 
-        modularity[timeslice] = partitions.quality()
+        #modularity[timeslice] = partitions.quality() - not sure if modularity should be returned
 
         for node in range(len(subgraph_igraph.vs)):
             subgraph_igraph.vs["cluster number"] = partitions.membership
@@ -198,15 +198,15 @@ def cluster_timeslice_subject_pair_coo_graph(G_timeslices: dict):
                 timestamp + "_" + str(node[1]["cluster number"])
             )
 
-    return subgraph_communities, modularity
-
+    return subgraph_communities
 
 def sanitise_clusters(timeslice_x, timeslice_y):
     """
-    Enforces cluster label consistency across timeslices based on jaccard similarity. 
+    Enforces cluster label consistency across timeslices greedily 
+    based on jaccard similarity.
 
-    Input:
-        timeslice_x (Graph): subject pair cooccurance subgraph at timeslice x 
+    Args:
+        timeslice_x (Graph): subject pair cooccurance subgraph at timeslice x
         timeslice_y (Graph): subject pair cooccurance subgraphs at timeslice y (x + 1)
     """
     subgraph_clusters = [
@@ -225,6 +225,7 @@ def sanitise_clusters(timeslice_x, timeslice_y):
             perm_dists.append((cluster_perm, dists))
 
     sorted_perm_dists = sorted(perm_dists, key=lambda x: x[1], reverse=True)
+
     while len(sorted_perm_dists) > 0:
         most_similar_clusts = sorted_perm_dists[0]
         # update labels in timeslice y

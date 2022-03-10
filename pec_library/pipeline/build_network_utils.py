@@ -14,17 +14,17 @@ from datetime import datetime
 
 from typing import List
 from pec_library.getters.data_getters import get_library_data
-
 ####
 
 KEYWORDS = [
     "heat pump*",
     "solar panel*",
+    "solar energy",
+    "renewable energy",
     "home retrofit*",
     "decarbonisation",
     "solar pv",
 ]
-
 
 def get_all_library_data(keywords: List) -> List:
     """
@@ -45,9 +45,11 @@ def get_all_library_data(keywords: List) -> List:
             all_library_data.extend(get_library_data(keyword))
         except TypeError:
             pass
-
-    return all_library_data
-
+    print(f"the total number of results is {len(all_library_data)}.")
+    #deduplicate based on book title name
+    all_library_data_deduped = [list(grp)[0] for _, grp in itertools.groupby(all_library_data, lambda d: d['title'])]
+    print(f"the total number of deduped results based on book title is {len(all_library_data_deduped)}.")
+    return all_library_data_deduped
 
 def extract_publication_year(all_library_data: List) -> List:
     """
@@ -64,27 +66,29 @@ def extract_publication_year(all_library_data: List) -> List:
         data on bibliographic data incl. publication year, holdings
         and uri.
     """
-
     for book in all_library_data:
-        if "publication_details" in book["bibliographic_data"].keys():
-            book_pub_detail = book["bibliographic_data"]["publication_details"][0]
+        if "publication_details" in book.keys():
+            book_pub_detail = book["publication_details"][0]
             potential_years = re.findall(r"\d{4}", book_pub_detail)
             if potential_years != []:
-                potential_years = potential_years[0]
-                if (
-                    potential_years.startswith("18")
-                    or potential_years.startswith("19")
-                    or potential_years.startswith("2")
-                ):
+                years = [year for year in potential_years if
+                                   year.startswith("18")
+                                   or year.startswith("19")
+                                   or year.startswith("20")
+                                  ]
+                if len(years) > 1:
+                    #take earliest year for publication_year
                     potential_years_datetime_format = datetime.strptime(
-                        potential_years, "%Y"
-                    )
-                    if "subject" in book["bibliographic_data"]:
-                        book["bibliographic_data"][
-                            "publication_year"
-                        ] = potential_years_datetime_format.year
-
-    return all_library_data
+                            min(years), "%Y"
+                        )
+                elif years != []:
+                    potential_years_datetime_format = datetime.strptime(
+                            years[0], "%Y"
+                        )
+                book["publication_year"] = potential_years_datetime_format.year
+                        
+    #only return results with publication year as an attribute
+    return [book for book in all_library_data if 'publication_year' in book.keys()]
 
 
 def clean_subject(subject: List) -> List:
@@ -132,14 +136,11 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
         node is a subject, each edge contains year first published attribute.
     """
 
-    # filter records for records w/ subject AND publication year
-    all_library_data = [
-        book
-        for book in all_library_data
-        if "subject" and "publication_year" in book["bibliographic_data"].keys()
-    ]
-
-    subjects = [book["bibliographic_data"]["subject"] for book in all_library_data]
+    #filter records for records w/ subject 
+    print(f"the number of records w/ publication year is: {len(all_library_data)}")
+    all_library_data = [book for book in all_library_data if "subject" in book.keys()]
+    print(f"the number of records w/ publication year AND subjects is: {len(all_library_data)}")
+    subjects = [book["subject"] for book in all_library_data]
 
     # Get a list of all of subject combinations
     expanded_subjects = itertools.chain(
@@ -163,17 +164,23 @@ def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
         for record in all_library_data:
             if (
                 subject_pair[0]
-                and subject_pair[1] in record["bibliographic_data"]["subject"]
+                and subject_pair[1] in record["subject"]
             ):
-                years.append(record["bibliographic_data"]["publication_year"])
-                subject_pair_years[subject_pair] = {"years published": years,
-                                                   "weight": weight}
+                years.append(record["publication_year"])
+                subject_pair_years[subject_pair] = {
+                    "years published": years,
+                    "weight": weight,
+                }
 
     # instantiate and populate network
     G = nx.Graph()
     for subject_pair, subject_pair_info in subject_pair_years.items():
-        G.add_edge(subject_pair[0],
-                  subject_pair[1],
-                  first_published=sorted(subject_pair_info["years published"])[0],
-                  weight=subject_pair_info['weight'])
+        G.add_edge(
+            subject_pair[0],
+            subject_pair[1],
+            first_published=sorted(subject_pair_info["years published"])[0],
+            weight=subject_pair_info["weight"],
+        )
+
+    #whole network 
     return G
