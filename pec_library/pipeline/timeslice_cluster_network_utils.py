@@ -13,7 +13,9 @@ import statistics
 from collections import Counter
 import itertools
 from sklearn.feature_extraction.text import TfidfVectorizer
+
 ####
+
 
 def get_tfidf_top_features(documents: list, n_top: int):
     """get top n features using tfidf."""
@@ -32,8 +34,9 @@ def get_subgraph_cluster_nodes(G_timeslice, cluster: str) -> List:
         if node_info["timeslice cluster number"] == cluster
     ]
 
+
 def get_subgraph_clusters(G_timeslice) -> List:
-    """helper function to get ordered list of all subgraph 
+    """helper function to get ordered list of all subgraph
     clusters from largest to smallest."""
     subgraph_cluster = [
         node[1] for node in G_timeslice.nodes(data="timeslice cluster number")
@@ -135,7 +138,9 @@ def add_cluster_colors(subgraph_communities: dict) -> Dict:
     return subgraph_communities
 
 
-def timeslice_subject_pair_coo_graph(G, timeslice_interval: int, min_timeslice: int) -> Dict:
+def timeslice_subject_pair_coo_graph(
+    G, timeslice_interval: int, min_timeslice: int
+) -> Dict:
     """
     Creates timesliced subject-pair co-occurance subgraphs every X year interval.
 
@@ -151,7 +156,11 @@ def timeslice_subject_pair_coo_graph(G, timeslice_interval: int, min_timeslice: 
 
     G_timeslices = dict()
     for i, timeslice in enumerate(
-        range(min_timeslice, max(pairs_first_published) + timeslice_interval, timeslice_interval)
+        range(
+            min_timeslice,
+            max(pairs_first_published) + timeslice_interval,
+            timeslice_interval,
+        )
     ):
         subgraph_edges = [
             (u, v)
@@ -160,8 +169,10 @@ def timeslice_subject_pair_coo_graph(G, timeslice_interval: int, min_timeslice: 
         ]
 
         # subgraph induced by specified edges
-        G_timeslices["G_timeslice_" + str(i)] =  nx.Graph(nx.edge_subgraph(G, subgraph_edges))
-                                               
+        G_timeslices["G_timeslice_" + str(i)] = nx.Graph(
+            nx.edge_subgraph(G, subgraph_edges)
+        )
+
     return G_timeslices
 
 
@@ -185,7 +196,7 @@ def cluster_timeslice_subject_pair_coo_graph(G_timeslices: dict):
         subgraph_igraph = ig.Graph.from_networkx(subgraph)
         partitions = la.find_partition(subgraph_igraph, la.ModularityVertexPartition)
 
-        #modularity[timeslice] = partitions.quality() - not sure if modularity should be returned
+        # modularity[timeslice] = partitions.quality() - not sure if modularity should be returned
 
         for node in range(len(subgraph_igraph.vs)):
             subgraph_igraph.vs["cluster number"] = partitions.membership
@@ -200,9 +211,10 @@ def cluster_timeslice_subject_pair_coo_graph(G_timeslices: dict):
 
     return subgraph_communities
 
+
 def sanitise_clusters(timeslice_x, timeslice_y):
     """
-    Enforces cluster label consistency across timeslices greedily 
+    Enforces cluster label consistency across timeslices greedily
     based on jaccard similarity.
 
     Args:
