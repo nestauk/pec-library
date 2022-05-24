@@ -10,6 +10,8 @@
   - Configure pre-commit
   - Configure metaflow to use AWS
 
+If you update the requirements then run `make conda-update`.
+
 ## Contributor guidelines
 
 [Technical and working style guidelines](https://github.com/nestauk/ds-cookiecutter/blob/master/GUIDELINES.md)

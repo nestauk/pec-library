@@ -9,3 +9,8 @@ tqdm
 filelock
 typer
 sh
+boto3
+networkx
+nltk
+Distance
+leidenalg
