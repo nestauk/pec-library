@@ -48,11 +48,9 @@ def get_all_library_data(keywords: List) -> List:
         except TypeError:
             pass
     print(f"the total number of results is {len(all_library_data)}.")
-    # deduplicate based on book title name
-    all_library_data_deduped = [
-        list(grp)[0]
-        for _, grp in itertools.groupby(all_library_data, lambda d: d["title"])
-    ]
+   
+   # deduplicate based on book title name
+    all_library_data_deduped = {','.join(map(str, r['title'])): r for r in all_library_data}.values()
     print(
         f"the total number of deduped results based on book title is {len(all_library_data_deduped)}."
     )
