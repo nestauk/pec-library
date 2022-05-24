@@ -31,11 +31,6 @@ from pec_library.pipeline.timeslice_cluster_network_utils import (
     timeslice_subject_pair_coo_graph,
 )
 from pec_library.getters.data_getters import s3, load_s3_data
-import sys
-
-sys.path.append("/Users/india.kerlenesta/Projects/pec_library")
-
-
 ########################################################
 
 # %%
