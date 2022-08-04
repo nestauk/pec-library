@@ -1,7 +1,6 @@
 """
 Util functions to help build library network and add relevant node and edge attributes.
 """
-####
 import re
 from string import digits
 from nltk.stem import WordNetLemmatizer
@@ -13,28 +12,27 @@ from collections import Counter
 from datetime import datetime
 
 from typing import List
-from pec_library.getters.data_getters import get_library_data
+from pec_library.getters.data_getters import get_library_data, s3, load_s3_data
 
-####
+from pec_library import bucket_name
 
 KEYWORDS = [
     "heat pump*",
     "solar panel*",
     "solar energy",
-    "renewable energy",
     "home retrofit*",
     "decarbonisation",
     "solar pv",
 ]
 
+UPDATED_RENEWABLE_ENERGY = "outputs/all_renewable_energy_deduped.pickle"
+
 
 def get_all_library_data(keywords: List) -> List:
     """
     Wrapper function to query Libraryhub's API based on a list of keywords.
-
     Input:
         keyword (list): list of query terms used to query Libraryhub's API.
-
     Output:
         all_library_data (list of dicts): query results where each element
         of the list is a dictionary with
@@ -48,9 +46,20 @@ def get_all_library_data(keywords: List) -> List:
         except TypeError:
             pass
     print(f"the total number of results is {len(all_library_data)}.")
-   
-   # deduplicate based on book title name
-    all_library_data_deduped = {','.join(map(str, r['title'])): r for r in all_library_data}.values()
+    # load updated renewable energy data!
+    renewable_energy = load_s3_data(s3, bucket_name, UPDATED_RENEWABLE_ENERGY)
+    # extend it with renewable energy
+    all_library_data.extend(renewable_energy)
+    print(
+        f"after adding renewable energy, the total number of results is {len(all_library_data)}."
+    )
+
+    # deduplicate based on book title name
+    all_library_data = [book["bibliographic_data"] for book in all_library_data]
+    all_library_data_deduped = [
+        list(grp)[0]
+        for _, grp in itertools.groupby(all_library_data, lambda d: d["title"])
+    ]
     print(
         f"the total number of deduped results based on book title is {len(all_library_data_deduped)}."
     )
@@ -60,12 +69,10 @@ def get_all_library_data(keywords: List) -> List:
 def extract_publication_year(all_library_data: List) -> List:
     """
     Regex extract publication year from publication details field.
-
     Input:
         all_library_data (list): query results where each element
         of the list is a dictionary with
         data on bibliographic data, holdings and uri.
-
     Output:
         all_library_data (list of dicts): query results where each element
         of the list is a dictionary with
@@ -97,11 +104,11 @@ def extract_publication_year(all_library_data: List) -> List:
     return [book for book in all_library_data if "publication_year" in book.keys()]
 
 
+# %%
 def clean_subject(subject: List) -> List:
     """
     Args:
         subject (list): list of string subjects to be cleaned.
-
     Returns:
         subject (list): list of cleaned string subjects.
     """
@@ -127,16 +134,15 @@ def clean_subject(subject: List) -> List:
     return subject
 
 
+# %%
 def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
     """
     Builds subject pair cooccurance graph from records with both
     publicaion year and subject list associated to them.
-
     Input:
         all_library_data (list): query results where each element
         of the list is a dictionary with
         data on bibliographic data incl. publication year, holdings and uri.
-
     Output:
         G (graph): An undirected, unweighted networkx graph where each
         node is a subject, each edge contains year first published attribute.
