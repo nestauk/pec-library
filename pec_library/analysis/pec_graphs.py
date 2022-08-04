@@ -1,22 +1,5 @@
-# ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: -all
-#     comment_magics: true
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.13.1
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-# ---
-
-# %%
 """Graphs generated for the PEC blogpost."""
-########################################################
+
 import itertools
 import pigeonXT as pixt
 from collections import Counter
@@ -26,23 +9,21 @@ from pyvis.network import Network
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
-from pec_library import config, BUCKET_NAME
+from pec_library import config, bucket_name, PROJECT_DIR
 from pec_library.pipeline.timeslice_cluster_network_utils import (
     timeslice_subject_pair_coo_graph,
 )
 from pec_library.getters.data_getters import s3, load_s3_data
-########################################################
 
-# %%
-labels = ["science", "technology", "policy", "finance", "other"]
+LABELS = ["science", "technology", "policy", "finance", "other"]
 
 # %% [markdown]
 # #### 0. Load Data
 
 # %%
-asf_data = load_s3_data(s3, BUCKET_NAME, config["raw_data_path"])
-G_timeslices = load_s3_data(s3, BUCKET_NAME, config["G_timeslices_path"])
-G_library = load_s3_data(s3, BUCKET_NAME, config["network_path"])
+asf_data = load_s3_data(s3, bucket_name, config["raw_data_path"])
+G_timeslices = load_s3_data(s3, bucket_name, config["G_timeslices_path"])
+G_library = load_s3_data(s3, bucket_name, config["network_path"])
 G_timeslices_not_clustered = timeslice_subject_pair_coo_graph(
     G_library, config["timeslice_interval"], 1945
 )
@@ -92,10 +73,8 @@ def update_node_color(
     timeslice_cluster_color="timeslice cluster color colormap",
 ):
     """Map original node cluster color to color map.
-
     network: Graph to update node color.
     color_map (str): color map to choose from
-
     """
     current_colors = set(
         [x[1] for x in list(network.nodes(data="timeslice cluster color"))]
@@ -120,12 +99,10 @@ def update_node_color(
 
 def visualise_network(network, graph_name: str, timeslice_cluster_color: str):
     """Visualise whole network.
-
     Args:
         network: Graph to visualise.
         graph_name (str): The name used to save graph.
         timeslice_cluster_color (str): color node attribute.
-
     """
 
     g = Network(height="750px", width="100%", font_color="black")
@@ -153,7 +130,6 @@ def visualise_cluster(
     """Visualise cluster at two different timestamps where
     new nodes to the cluster are identified in red.
     Node size is determined by logged node degree.
-
     Args:
         G_timeslices: Dictionary of networks where key refers to timestamp
                       and value is the network at each timestamp.
@@ -164,7 +140,6 @@ def visualise_cluster(
         multiplier (int): Number to multiply logged node degree by.
         big_node_degree (int): The logged node degree threshold for showing
                                node names.
-
     """
 
     subgraph1 = G_timeslices[timeslice_x].subgraph(
@@ -322,13 +297,10 @@ def hp_nodes_to_label():
 # %%
 def label_hp_nodes(labels: list) -> pd.DataFrame:
     """Label target nodes using list of potential labels.
-
     Args:
         labels (list): List of potential labels to label target nodes with.
-
     Returns:
         annotations (pd.DataFrame): Labelled target nodes
-
     """
     bc_df = hp_nodes_to_label()
 
@@ -342,16 +314,14 @@ def label_hp_nodes(labels: list) -> pd.DataFrame:
         include_back=True,
     )
 
-    return annotations
+    return bc_df, annotations
 
 
 # %%
 def generate_hp_focus_bc(annotations: pd.DataFrame):
     """Generate HP in focus bar chart.
-
     Args:
         annotations (pd.DataFrame): labelled target nodes.
-
     """
     bc_df["target node label"] = bc_df["target node"].map(
         annotations.set_index("example")["label"].T.to_dict()
@@ -363,7 +333,7 @@ def generate_hp_focus_bc(annotations: pd.DataFrame):
     )
 
     bc_df_weightcount = bc_df_weightcount[
-        bc_df_weightcount["target node label"] != "other"
+        bc_df_weightcount["target node label"] != "Other"
     ]
 
     bc_df_stacked = bc_df_weightcount.pivot("timeslice", "target node label", "weight")
@@ -397,7 +367,7 @@ def generate_hp_focus_bc(annotations: pd.DataFrame):
 # ##### 3.2 heat pump focus bar chart
 
 # %%
-annotations = label_hp_nodes(labels)
+bc_df, annotations = label_hp_nodes(LABELS)
 
 # %%
 generate_hp_focus_bc(annotations)
