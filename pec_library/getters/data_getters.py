@@ -11,13 +11,9 @@ import os
 import logging
 import boto3
 import random
-import pandas as pd
-from fnmatch import fnmatch
 from typing import List
 import pandas as pd
 from fnmatch import fnmatch
-from typing import List
-
 ####
 
 s3 = boto3.resource("s3")

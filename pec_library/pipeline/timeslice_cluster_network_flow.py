@@ -1,18 +1,23 @@
+# %%
 """
 To run flow:
 
 python timeslice_cluster_network_flow.py run --lib_network_name "G_library.pickle" --lib_time "G_timeslices.pickle" --time_interval 10 --min_time 1945 --n_top 3
 """
 
+# %%
 ####
 from metaflow import FlowSpec, step, project, Parameter, S3, pip
 
+# %%
 import json
 import pickle
 
-####
+# %% [markdown]
+# ###
 
 
+# %%
 @project(name="pec_library")
 class TimesliceClusterNetwork(FlowSpec):
     """Generates library network subgraphs based on time intervals.
@@ -68,14 +73,14 @@ class TimesliceClusterNetwork(FlowSpec):
     @step
     def start(self):
         """Load library data from s3."""
-        from pec_library import BUCKET_NAME
+        from pec_library import bucket_name
 
-        with S3(s3root="s3://" + BUCKET_NAME + "/outputs/") as s3:
+        with S3(s3root="s3://" + bucket_name + "/outputs/") as s3:
             library_network_obj = s3.get(self.library_network_name)
             self.library_network = pickle.loads(library_network_obj.blob)
 
         print(
-            f"successfully loaded library data from {'s3://' + BUCKET_NAME + '/outputs/' + self.library_network_name}"
+            f"successfully loaded library data from {'s3://' + bucket_name + '/outputs/' + self.library_network_name}"
         )
 
         self.next(self.cluster_timeslice_network)
@@ -142,16 +147,17 @@ class TimesliceClusterNetwork(FlowSpec):
     def end(self):
         """Saves dictionary of clustered, named subgraphs based on timeslices
         to s3."""
-        from pec_library import BUCKET_NAME
+        from pec_library import bucket_name
 
-        with S3(s3root="s3://" + BUCKET_NAME + "/outputs/") as s3:
+        with S3(s3root="s3://" + bucket_name + "/outputs/") as s3:
             timeslice_byte_obj = pickle.dumps(self.subgraph_communities)
             s3.put(self.library_timeslices, timeslice_byte_obj)
 
         print(
-            f"successfully saved library data to {'s3://' + BUCKET_NAME + '/outputs/' + self.library_timeslices}"
+            f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_timeslices}"
         )
 
 
+# %%
 if __name__ == "__main__":
     TimesliceClusterNetwork()

@@ -26,28 +26,24 @@ from pyvis.network import Network
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
-from pec_library import config, BUCKET_NAME
+from pec_library import config, bucket_name, PROJECT_DIR
 from pec_library.pipeline.timeslice_cluster_network_utils import (
     timeslice_subject_pair_coo_graph,
 )
 from pec_library.getters.data_getters import s3, load_s3_data
-import sys
-
-sys.path.append("/Users/india.kerlenesta/Projects/pec_library")
-
 
 ########################################################
 
 # %%
-labels = ["science", "technology", "policy", "finance", "other"]
+LABELS = ["science", "technology", "policy", "finance", "other"]
 
 # %% [markdown]
 # #### 0. Load Data
 
 # %%
-asf_data = load_s3_data(s3, BUCKET_NAME, config["raw_data_path"])
-G_timeslices = load_s3_data(s3, BUCKET_NAME, config["G_timeslices_path"])
-G_library = load_s3_data(s3, BUCKET_NAME, config["network_path"])
+asf_data = load_s3_data(s3, bucket_name, config["raw_data_path"])
+G_timeslices = load_s3_data(s3, bucket_name, config["G_timeslices_path"])
+G_library = load_s3_data(s3, bucket_name, config["network_path"])
 G_timeslices_not_clustered = timeslice_subject_pair_coo_graph(
     G_library, config["timeslice_interval"], 1945
 )
@@ -347,7 +343,7 @@ def label_hp_nodes(labels: list) -> pd.DataFrame:
         include_back=True,
     )
 
-    return annotations
+    return bc_df, annotations
 
 
 # %%
@@ -368,7 +364,7 @@ def generate_hp_focus_bc(annotations: pd.DataFrame):
     )
 
     bc_df_weightcount = bc_df_weightcount[
-        bc_df_weightcount["target node label"] != "other"
+        bc_df_weightcount["target node label"] != "Other"
     ]
 
     bc_df_stacked = bc_df_weightcount.pivot("timeslice", "target node label", "weight")
@@ -402,7 +398,7 @@ def generate_hp_focus_bc(annotations: pd.DataFrame):
 # ##### 3.2 heat pump focus bar chart
 
 # %%
-annotations = label_hp_nodes(labels)
+bc_df, annotations = label_hp_nodes(LABELS)
 
 # %%
 generate_hp_focus_bc(annotations)
