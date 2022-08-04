@@ -1,22 +1,16 @@
 """
 To run flow:
-
 python build_network_flow.py run --min_edge_weight 1 --lib_name asf.pickle --lib_network_name G_library.pickle
 """
 
-####
 from metaflow import FlowSpec, step, project, Parameter, S3
 
 import pickle
-
-####
-
 
 @project(name="pec_library")
 class BuildNetwork(FlowSpec):
     """Pulls data from Library Hub API, preprocesses subject lists and extracts
     publication year from publication detail. Builds subject pair cooccurance network.
-
     Attributes:
         mind_edge_weight: the minimum edge weight to include subject pair in graph
         library_data_name: file name to save library data to.
@@ -99,23 +93,22 @@ class BuildNetwork(FlowSpec):
 
     @step
     def end(self):
-        from pec_library import BUCKET_NAME
+        from pec_library import bucket_name
 
         """Save both cleaned library data and subject pair coocurance network
         to s3."""
-        with S3(s3root="s3://" + BUCKET_NAME + "/outputs/") as s3:
+        with S3(s3root="s3://" + bucket_name + "/outputs/") as s3:
             library_byte_obj = pickle.dumps(self.library_data)
             network_byte_obj = pickle.dumps(self.library)
 
             s3.put(self.library_data_name, library_byte_obj)
             print(
-                f"successfully saved library data to {'s3://' + BUCKET_NAME + '/outputs/' + self.library_data_name}"
+                f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_data_name}"
             )
             s3.put(self.library_network_name, network_byte_obj)
             print(
-                f"successfully saved library data to {'s3://' + BUCKET_NAME + '/outputs/' + self.library_network_name}"
+                f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_network_name}"
             )
-
 
 if __name__ == "__main__":
     BuildNetwork()
