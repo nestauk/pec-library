@@ -5,12 +5,14 @@ python build_network_flow.py run --min_edge_weight 1 --lib_name asf.pickle --lib
 
 from metaflow import FlowSpec, step, project, Parameter, S3
 
+from pec_library import logger
 import pickle
 
 @project(name="pec_library")
 class BuildNetwork(FlowSpec):
     """Pulls data from Library Hub API, preprocesses subject lists and extracts
     publication year from publication detail. Builds subject pair cooccurance network.
+
     Attributes:
         mind_edge_weight: the minimum edge weight to include subject pair in graph
         library_data_name: file name to save library data to.
@@ -52,27 +54,23 @@ class BuildNetwork(FlowSpec):
         )
 
         self.library_data = get_all_library_data(KEYWORDS)
-
+        
         self.next(self.clean_data)
 
     @step
     def clean_data(self):
-        """Clean subject list and extract publication year from
-        publication details.
+        """Deduplicate, clean subject lists, extract publication year,
+        verify keywords in subject lists, only items books with key
+        fields. 
         """
         from pec_library.pipeline.build_network_utils import (
-            extract_publication_year,
+            clean_library_data,
             clean_subject,
         )
 
-        self.library_data = extract_publication_year(self.library_data)
-
-        for book in self.library_data:
-            if "subject" in book.keys():
-                book["subject"] = clean_subject(book["subject"])
-
-        print("cleaned subject list and extracted publication year!")
-
+        self.clean_library_data = clean_library_data(self.library_data)
+        print(f"the size is {len(self.clean_library_data)}")
+        logger.info("cleaned library data")
         self.next(self.build_network)
 
     @step
@@ -84,10 +82,10 @@ class BuildNetwork(FlowSpec):
         )
 
         self.library = build_subject_pair_coo_graph(
-            self.library_data, self.min_edge_weight
+            self.clean_library_data, self.min_edge_weight
         )
 
-        print("generated subject pair coo graph!")
+        logger.info("generated subject pair coo graph")
 
         self.next(self.end)
 
@@ -98,15 +96,15 @@ class BuildNetwork(FlowSpec):
         """Save both cleaned library data and subject pair coocurance network
         to s3."""
         with S3(s3root="s3://" + bucket_name + "/outputs/") as s3:
-            library_byte_obj = pickle.dumps(self.library_data)
+            library_byte_obj = pickle.dumps(self.clean_library_data)
             network_byte_obj = pickle.dumps(self.library)
 
             s3.put(self.library_data_name, library_byte_obj)
-            print(
+            logger.info(
                 f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_data_name}"
             )
             s3.put(self.library_network_name, network_byte_obj)
-            print(
+            logger.info(
                 f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_network_name}"
             )
 
