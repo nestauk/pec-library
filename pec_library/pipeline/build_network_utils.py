@@ -10,10 +10,10 @@ import networkx as nx
 import itertools
 from collections import Counter
 from datetime import datetime
-
 from typing import List
-from pec_library.getters.data_getters import get_library_data, s3, load_s3_data
+from toolz import pipe
 
+from pec_library.getters.data_getters import get_library_data, s3, load_s3_data
 from pec_library import bucket_name
 
 KEYWORDS = [
@@ -25,9 +25,8 @@ KEYWORDS = [
     "solar pv",
 ]
 
-UPDATED_RENEWABLE_ENERGY = "outputs/all_renewable_energy_deduped.pickle"
-
-
+UPDATED_RENEWABLE_ENERGY = load_s3_data(s3, bucket_name, "outputs/all_renewable_energy_deduped.pickle")
+    
 def get_all_library_data(keywords: List) -> List:
     """
     Wrapper function to query Libraryhub's API based on a list of keywords.
@@ -46,10 +45,9 @@ def get_all_library_data(keywords: List) -> List:
         except TypeError:
             pass
     print(f"the total number of results is {len(all_library_data)}.")
-    # load updated renewable energy data!
-    renewable_energy = load_s3_data(s3, bucket_name, UPDATED_RENEWABLE_ENERGY)
+    # load updated renewable energy data
     # extend it with renewable energy
-    all_library_data.extend(renewable_energy)
+    all_library_data.extend(UPDATED_RENEWABLE_ENERGY)
     print(
         f"after adding renewable energy, the total number of results is {len(all_library_data)}."
     )
@@ -65,46 +63,9 @@ def get_all_library_data(keywords: List) -> List:
     )
     return all_library_data_deduped
 
-
-def extract_publication_year(all_library_data: List) -> List:
-    """
-    Regex extract publication year from publication details field.
-    Input:
-        all_library_data (list): query results where each element
-        of the list is a dictionary with
-        data on bibliographic data, holdings and uri.
-    Output:
-        all_library_data (list of dicts): query results where each element
-        of the list is a dictionary with
-        data on bibliographic data incl. publication year, holdings
-        and uri.
-    """
-    for book in all_library_data:
-        if "publication_details" in book.keys():
-            book_pub_detail = book["publication_details"][0]
-            potential_years = re.findall(r"\d{4}", book_pub_detail)
-            if potential_years != []:
-                years = [
-                    year
-                    for year in potential_years
-                    if year.startswith("18")
-                    or year.startswith("19")
-                    or year.startswith("20")
-                ]
-                if len(years) > 1:
-                    # take earliest year for publication_year
-                    potential_years_datetime_format = datetime.strptime(
-                        min(years), "%Y"
-                    )
-                elif years != []:
-                    potential_years_datetime_format = datetime.strptime(years[0], "%Y")
-                book["publication_year"] = potential_years_datetime_format.year
-
     # only return results with publication year as an attribute
     return [book for book in all_library_data if "publication_year" in book.keys()]
 
-
-# %%
 def clean_subject(subject: List) -> List:
     """
     Args:
@@ -133,8 +94,79 @@ def clean_subject(subject: List) -> List:
 
     return subject
 
+def clean_library_data(library_data):
+    """Cleaning library data pipeline. The function:
+            - only keeping records with key fields;
+            - removing duplicate items;
+            - extracting publication year;
+            - cleaning subject lists;
+            - keeping records with keywords in subjects
+    """
+    def keep_records_with_key_fields(library_data): 
+        """Keep records with key fields used for analysis."""
+        key_fields = ['title', 'subject', 'publication_details']
+        library_data_with_key_fields = []
+        for item in library_data:
+            if len(set(item.keys()).intersection(key_fields)) == len(key_fields):
+                library_data_with_key_fields.append(item)
+        return library_data_with_key_fields
+    def remove_duplicate_items(library_data):
+        """De-duplicate items in library data."""
+        deduplicated_library_data = []
+        for item in library_data:
+            if item not in deduplicated_library_data:
+                deduplicated_library_data.append(item)
+        return deduplicated_library_data
+    def clean_subject_list(library_data: list):
+        """Cleans subject lists in library data."""
+        for book in library_data:
+            book["subject"] = clean_subject(book["subject"])
+        return library_data
+    def extract_publication_year(library_data):
+        """
+        Regex extract publication year from publication details field.
+        Input:
+            library_data (list): query results where each element
+            of the list is a dictionary with
+            data on bibliographic data, holdings and uri.
+        Output:
+            all_library_data (list of dicts): query results where each element
+            of the list is a dictionary with
+            data on bibliographic data incl. publication year, holdings
+            and uri.
+        """
+        for book in library_data:
+            book_pub_detail = book["publication_details"][0]
+            potential_years = re.findall(r"\d{4}", book_pub_detail)
+            if potential_years != []:
+                years = [
+                    year
+                    for year in potential_years
+                    if year.startswith("18")
+                    or year.startswith("19")
+                    or year.startswith("20")
+                ]
+                if len(years) > 1:
+                    # take earliest year for publication_year
+                    potential_years_datetime_format = datetime.strptime(
+                        min(years), "%Y"
+                    )
+                elif years != []:
+                    potential_years_datetime_format = datetime.strptime(years[0], "%Y")
+                book["publication_year"] = potential_years_datetime_format.year
+        return [book for book in library_data if "publication_year" in book.keys()]
+    def keep_records_with_keyword_in_subject(library_data):
+        """Keep records that contain at least one keyword in subject list."""
+        library_data_with_keywords = []
+        keywords_clean = [keyword.replace('*', '') for keyword in KEYWORDS + ["renewable energy"]]
+        keyword_pattern = '|'.join(f"\\b{k}\\b" for k in keywords_clean)
+        for book in library_data:
+            if re.findall(keyword_pattern, ' '.join(book['subject'])):
+                library_data_with_keywords.append(book)
+        return library_data_with_keywords
 
-# %%
+    return pipe(library_data, keep_records_with_key_fields, remove_duplicate_items, extract_publication_year, clean_subject_list, keep_records_with_keyword_in_subject)
+
 def build_subject_pair_coo_graph(all_library_data: List, min_edge_weight):
     """
     Builds subject pair cooccurance graph from records with both
