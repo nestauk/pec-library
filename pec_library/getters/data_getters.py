@@ -14,9 +14,6 @@ import random
 import pandas as pd
 from fnmatch import fnmatch
 from typing import List
-import pandas as pd
-from fnmatch import fnmatch
-from typing import List
 
 ####
 
@@ -26,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 BASE_REQUEST = "https://discover.libraryhub.jisc.ac.uk/search?subject="
 JSON_FORMAT = "&format=json&page="
-
 
 def get_library_data(keyword: str) -> List:
     """
