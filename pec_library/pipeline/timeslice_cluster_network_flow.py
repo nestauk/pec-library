@@ -13,6 +13,7 @@ class TimesliceClusterNetwork(FlowSpec):
     "Sanitises" clusters by propogating cluster labels across time
     intervals based on jaccard similarity at time interval t and
     time interval t+1. Clusters, names and colors subgraph clusters.
+
     Attributes:
     library_network_name: library network file name.
     timeslice_interval: the time interval to timeslice the library network
@@ -51,7 +52,7 @@ class TimesliceClusterNetwork(FlowSpec):
         "min_time",
         help="time minimum year to timeslice library network into subgraphs.",
         type=int,
-        default=1945,  # parameter defined by distribution of years across network
+        default=1965,  # parameter defined by distribution of years across network
     )
 
     n_top = Parameter(
@@ -144,6 +145,5 @@ class TimesliceClusterNetwork(FlowSpec):
         print(
             f"successfully saved library data to {'s3://' + bucket_name + '/outputs/' + self.library_timeslices}"
         )
-
 if __name__ == "__main__":
     TimesliceClusterNetwork()
