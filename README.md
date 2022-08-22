@@ -1,4 +1,14 @@
-# pec-library
+# PEC Library
+
+This repo contains the code behind the PEC library project on exploring trends in renewable energy in library catalogue data.  
+
+To call [the Library Hub Discover API](https://discover.libraryhub.jisc.ac.uk/support/api/) with a list of keywords, clean up the returned results, generate a network and save to Nesta S3:
+
+`python build_network_flow.py run --min_edge_weight 1 --lib_name asf.pickle --lib_network_name G_library.pickle run`
+
+To timeslice the overall network; cluster each timeslice network and save to Nesta S3: 
+
+`python timeslice_cluster_network_flow.py run --lib_network_name "G_library.pickle" --lib_time "G_timeslices.pickle" --time_interval 10 --min_time 1965 --n_top 3`
 
 ## Setup
 
