@@ -196,8 +196,6 @@ def cluster_timeslice_subject_pair_coo_graph(G_timeslices: dict):
         subgraph_igraph = ig.Graph.from_networkx(subgraph)
         partitions = la.find_partition(subgraph_igraph, la.ModularityVertexPartition)
 
-        # modularity[timeslice] = partitions.quality() - not sure if modularity should be returned
-
         for node in range(len(subgraph_igraph.vs)):
             subgraph_igraph.vs["cluster number"] = partitions.membership
         subgraph_communities[timeslice] = subgraph_igraph.to_networkx()
