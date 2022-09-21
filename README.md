@@ -2,6 +2,10 @@
 
 This repo contains the code behind the PEC library project on exploring trends in renewable energy in library catalogue data.  
 
+We take a follow six steps to the network based approach to exploring trends in renewable energy, which is summarised in the below chart:
+
+By clustering subgraphs over time, we are able to explore subject group dynamics over time, answering interesting questions such as: what can the changes in clusters over time tell us about the renewable energy space? What topic areas have remained popular in renewable energy literature? What new topics have emerged? 
+
 To call [the Library Hub Discover API](https://discover.libraryhub.jisc.ac.uk/support/api/) with a list of keywords, clean up the returned results, generate a network and save to Nesta S3:
 
 `python build_network_flow.py run --min_edge_weight 1 --lib_name asf.pickle --lib_network_name G_library.pickle run`
