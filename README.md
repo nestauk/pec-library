@@ -4,7 +4,9 @@ This repo contains the code behind the PEC library project on exploring trends i
 
 We take a follow six steps to the network based approach to exploring trends in renewable energy, which is summarised in the below chart:
 
-<img width="638" alt="Screenshot 2022-09-21 at 10 04 38" src="https://user-images.githubusercontent.com/46863334/191463351-cf4bf54d-9fc2-4dc5-ba54-95a99834d4f6.png">
+<p align="center">
+  <img width="638" alt="Screenshot 2022-09-21 at 10 04 38" src="https://user-images.githubusercontent.com/46863334/191463351-cf4bf54d-9fc2-4dc5-ba54-95a99834d4f6.png">
+</p>
 
 By clustering subgraphs over time, we are able to explore subject group dynamics over time, answering interesting questions such as: what can the changes in clusters over time tell us about the renewable energy space? What topic areas have remained popular in renewable energy literature? What new topics have emerged? 
 
