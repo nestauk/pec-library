@@ -1,3 +1,4 @@
+# %%
 """Graphs generated for the PEC blogpost."""
 
 import itertools
@@ -14,8 +15,6 @@ from pec_library.pipeline.timeslice_cluster_network_utils import (
     timeslice_subject_pair_coo_graph,
 )
 from pec_library.getters.data_getters import s3, load_s3_data
-
-LABELS = ["science", "technology", "policy", "finance", "other"]
 
 # %% [markdown]
 # #### 0. Load Data
@@ -176,6 +175,7 @@ def visualise_cluster(
     ]
     big_nodes_indx = [i for i, d in enumerate(degrees) if d > big_node_degree]
     nx.set_node_attributes(subgraph2, degrees, "size")
+    
     # only label high degree nodes
     nodes_to_label = [list(subgraph2.nodes(data=True))[i] for i in big_nodes_indx]
     nodes_to_label = [x[1]["_nx_name"] for x in nodes_to_label]
@@ -217,14 +217,14 @@ cluster_names = [
     for x in Counter(
         [
             node[1]["timeslice cluster name"]
-            for node in G_timeslices["G_timeslice_8"].nodes(data=True)
+            for node in G_timeslices["G_timeslice_6"].nodes(data=True)
         ]
     ).most_common()[5:15]
 ]
-latest_subgraph = G_timeslices["G_timeslice_8"].subgraph(
+latest_subgraph = G_timeslices["G_timeslice_6"].subgraph(
     [
         node[0]
-        for node in G_timeslices["G_timeslice_8"].nodes(data=True)
+        for node in G_timeslices["G_timeslice_6"].nodes(data=True)
         if node[1]["timeslice cluster name"] in cluster_names
     ]
 )
@@ -249,15 +249,15 @@ visualise_cluster(
 )
 
 # %% [markdown]
-# ##### 2.4 irrigation-solar-energy network in focus
+# ##### 2.4 great-britain-energy network in focus
 
 # %%
 visualise_cluster(
     G_timeslices,
-    config["irrigation_timeslice_x"],
-    config["irrigation_timeslice_y"],
-    config["irrigation_cluster_name"],
-    config["irrigation_graph_name"],
+    config["gb_timeslice_x"],
+    config["gb_timeslice_y"],
+    config["gb_cluster_name"],
+    config["gb_graph_name"],
 )
 
 
@@ -265,109 +265,36 @@ visualise_cluster(
 # #### 3. Heat Pump Focus Graphs
 
 # %% [markdown]
-# ##### 3.1 heat pump focus utils
+# ##### 3.1 ego graph utils
 
 # %%
-def hp_nodes_to_label():
-    """Generate DataFrame of target nodes to label."""
-    bc_df = []
-    for timeslice, subgraph in G_timeslices_not_clustered.items():
-        hp_df = pd.DataFrame(
-            [
-                (timeslice, edge[0], edge[1], edge[2]["weight"])
-                for edge in subgraph.edges(data=True)
-                if edge[0] == "heat pump"
-            ],
-            columns=["timeslice", "source node", "target node", "weight"],
-        )
-        hp_df["prob"] = hp_df["weight"] / sum(hp_df["weight"]) * 100
-        bc_df.append(
-            hp_df.sort_values("prob", ascending=False)[
-                ["timeslice", "source node", "target node", "weight", "prob"]
-            ]
-        )
+def generate_egograph(timeslice_network, node_name: str = 'heat pump'):
+    """Generate heat pump ego graph at different network timeslices."""
+    node = [x for x,y in timeslice_network.nodes(data=True) if y['_nx_name'] == node_name][0]
+    ego = nx.ego_graph(timeslice_network, node)
+    print(f"the number of edges in the ego-network is {ego.number_of_edges()}.")
+    print(f"the number of nodes in the ego-network is {ego.number_of_nodes()}.")
+    
+    nodes = [x for x,y in ego.nodes(data=True)]
+    colors = [y['timeslice cluster color'] for x,y in ego.nodes(data=True)]
+    print(Counter([y['timeslice cluster name'] for x,y in ego.nodes(data=True)]))
+    print(len(Counter([y['timeslice cluster number'] for x,y in ego.nodes(data=True)])))
 
-    bc_df = pd.concat(bc_df)
-    # get rid of self loops
-    bc_df = bc_df[bc_df["source node"] != bc_df["target node"]]
+    pos = nx.spring_layout(ego, seed=42)
+    
+    ec = nx.draw_networkx_edges(ego, pos, alpha=0.2)
+    nc = nx.draw_networkx_nodes(ego, pos, nodelist=nodes, node_color=colors, node_size=100, cmap=plt.cm.jet)
 
-    return bc_df
-
-
-# %%
-def label_hp_nodes(labels: list) -> pd.DataFrame:
-    """Label target nodes using list of potential labels.
-    Args:
-        labels (list): List of potential labels to label target nodes with.
-    Returns:
-        annotations (pd.DataFrame): Labelled target nodes
-    """
-    bc_df = hp_nodes_to_label()
-
-    annotations = pixt.annotate(
-        list(set(bc_df["target node"])),
-        options=labels,
-        task_type="classification",
-        buttons_in_a_row=3,
-        reset_buttons_after_click=True,
-        include_next=True,
-        include_back=True,
-    )
-
-    return bc_df, annotations
-
-
-# %%
-def generate_hp_focus_bc(annotations: pd.DataFrame):
-    """Generate HP in focus bar chart.
-    Args:
-        annotations (pd.DataFrame): labelled target nodes.
-    """
-    bc_df["target node label"] = bc_df["target node"].map(
-        annotations.set_index("example")["label"].T.to_dict()
-    )
-    bc_df_weightcount = (
-        bc_df.groupby(["timeslice", "target node label"])
-        .agg({"weight": sum})
-        .reset_index()
-    )
-
-    bc_df_weightcount = bc_df_weightcount[
-        bc_df_weightcount["target node label"] != "Other"
-    ]
-
-    bc_df_stacked = bc_df_weightcount.pivot("timeslice", "target node label", "weight")
-
-    years = list(
-        itertools.chain(
-            *[
-                [
-                    max(
-                        (
-                            set(
-                                [
-                                    e[2]["first_published"]
-                                    for e in subgraph.edges(data=True)
-                                ]
-                            )
-                        )
-                    )
-                ]
-                for graph_timestamp, subgraph in G_timeslices.items()
-            ]
-        )
-    )
-    bc_df_stacked["years"] = [str(x) for x in years]
-    bc_df_stacked.at["G_timeslice_8", "years"] = 2025
-    bc_df_stacked.index = bc_df_stacked.years
-    bc_df_stacked.plot(kind="bar", stacked=True)
+    # Draw ego as large and red
+    options = {"node_size": 300, "node_color": "r"}
+    nx.draw_networkx_nodes(ego, pos, nodelist=[node], **options)
+    
+    return ego
 
 
 # %% [markdown]
-# ##### 3.2 heat pump focus bar chart
+# #### 3.2 hp ego graphs
 
 # %%
-bc_df, annotations = label_hp_nodes(LABELS)
-
-# %%
-generate_hp_focus_bc(annotations)
+generate_egograph(timeslice_network=G_timeslices['G_timeslice_0'])
+generate_egograph(timeslice_network=G_timeslices['G_timeslice_6'] )
