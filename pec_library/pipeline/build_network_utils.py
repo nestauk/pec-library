@@ -61,8 +61,6 @@ def get_all_library_data(keywords: List) -> List:
     print(
         f"the total number of deduped results based on book title is {len(all_library_data_deduped)}."
     )
-    return all_library_data_deduped
-
     # only return results with publication year as an attribute
     return [book for book in all_library_data if "publication_year" in book.keys()]
 
@@ -151,10 +149,12 @@ def clean_library_data(library_data):
                     potential_years_datetime_format = datetime.strptime(
                         min(years), "%Y"
                     )
-                elif years != []:
+                else:
                     potential_years_datetime_format = datetime.strptime(years[0], "%Y")
                 book["publication_year"] = potential_years_datetime_format.year
+        
         return [book for book in library_data if "publication_year" in book.keys()]
+        
     def keep_records_with_keyword_in_subject(library_data):
         """Keep records that contain at least one keyword in subject list."""
         library_data_with_keywords = []
