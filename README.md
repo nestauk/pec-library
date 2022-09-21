@@ -1,4 +1,4 @@
-#Exploring trends in library data
+# Exploring trends in library data
 
 This repo contains the code behind the PEC library project on exploring trends in renewable energy in library catalogue data.  
 
