@@ -2,7 +2,7 @@
 
 This repo contains the code behind the PEC library project on exploring trends in renewable energy in library catalogue data.  
 
-We take a follow six steps to the network based approach to exploring trends in renewable energy, which is summarised in the below chart:
+We take a network based approach in six steps to explore trends in renewable energy, which is summarised in the below chart:
 
 <p align="center">
   <img width="638" alt="Screenshot 2022-09-21 at 10 04 38" src="https://user-images.githubusercontent.com/46863334/191463351-cf4bf54d-9fc2-4dc5-ba54-95a99834d4f6.png">
@@ -17,6 +17,8 @@ To call [the Library Hub Discover API](https://discover.libraryhub.jisc.ac.uk/su
 To timeslice the overall network; cluster each timeslice network and save to Nesta S3: 
 
 `python timeslice_cluster_network_flow.py run --lib_network_name "G_library.pickle" --lib_time "G_timeslices.pickle" --time_interval 10 --min_time 1965 --n_top 3`
+
+You will need access to Nesta's S3 bucket to run the scripts.
 
 ## Setup
 
